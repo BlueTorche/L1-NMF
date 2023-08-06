@@ -17,12 +17,31 @@ function lamnda_norm_l1_loss(X, W, H, lambda)
 end
 
 
+function norml1_sparse(X, W, H, lambdaH)
+    WH = W*H
+    m,n = size(X)
+    errors = 0
+    for i in 1:m
+        for j in 1:n
+            if X[i,j] == 0
+                errors += lambdaH[j]*WH[i,j]
+            else
+                errors += abs(X[i,j]-WH[i,j])
+            end
+        end
+    end
+
+    return errors/(n*m)
+end
+
+
 function norml2(X, W, Ht)
     return sum(X.*X) - 2*sum(W.*(X*Ht)) + sum((W'*W).*(Ht'*Ht))
 end
 
 
-function normalize(W,r)
+function normalize(W)
+    m,r = size(W)
     for p in 1:r
         col_max = maximum(W[:, p])
         if col_max > 0
@@ -34,7 +53,7 @@ end
 
 
 function find_cols_null(X::AbstractMatrix{T}) where T <: AbstractFloat
-    cols_null = Vector{Vector{Int}}()
+    cols_null = []
     _, n = size(X)
     
     for q in 1:n

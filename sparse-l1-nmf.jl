@@ -58,7 +58,7 @@ function l1_sparse_nmf(X::AbstractMatrix{T},
             println("Iteration $it ...")
             time = @elapsed begin
                 W = updaterWt(X',H',W', WK, lambda; args...)'
-                W = normalize(W,r)
+                W = normalize(W)
                 H = updaterH(X, W, H, HK, lambda; args...)
             end
 
@@ -71,12 +71,16 @@ function l1_sparse_nmf(X::AbstractMatrix{T},
             end
         else
             W = updaterWt(X',H',W', WK, lambda; args...)'
-            W = normalize(W,r)
+            W = normalize(W)
             H = updaterH(X, W, H, HK, lambda; args...)
         end
     end
 
-    return benchmark ? W, H, times, errors : W, H
+    if benchmark
+        return W, H, times, errors 
+    else 
+        return W, H
+    end
 end
 
 
