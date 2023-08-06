@@ -1,4 +1,18 @@
-using L1NMF
+# import Pkg;
+# Pkg.add("SparseArrays")
+# Pkg.add("MAT")
+# Pkg.add("DelimitedFiles")
+# Pkg.add("Plots")
+# Pkg.add("Munkres")
+
+using .L1NMF
+
+using MAT
+using SparseArrays
+using DelimitedFiles
+using Munkres
+using Plots
+
 
 function preprossessing(X)
     m,_ = size(X)
@@ -9,11 +23,17 @@ function preprossessing(X)
     return X
 end
 
+# Get Data
+data  = matopen("./k1b.mat")
+classid = read(data, "classid")
+X = Matrix{Float64}(sparse(read(data,"dtm")))'
+X = preprossessing(X)
+r = convert(Int64, maximum(classid))
+close(data)
 
-X  = [[1.0 2.0 3.0][4.0 5.0 6.0][7.0 8.0 9.0]]
-H = [1.0 1.0 1.0]
-W = [[1.0][1.0][1.0]]
-r = 1
+lambda=1.0
+benchmark = true
 
-W,H,_,_ = L1NMF.l1_sparse_nmf(X,r,W0=W,H0=H)
+
+W, H, times1,errors1 = L1NMF.l1_sparse_nmf(X,r,lambda = lambda, benchmark=benchmark)
 

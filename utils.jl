@@ -15,6 +15,11 @@ function norml1(X, W, H, lambda)
     return errors/(n*m)
 end
 
+# Fast computation of reconstruction error
+function fronorm(X, W, Ht)
+    return sum(X.*X) - 2*sum(W.*(X*Ht)) + sum((W'*W).*(Ht'*Ht))
+end
+
 
 function normalize(W,r)
     for p in 1:r
