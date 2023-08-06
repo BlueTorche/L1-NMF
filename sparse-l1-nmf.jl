@@ -11,7 +11,7 @@ function l1_sparse_nmf(X::AbstractMatrix{T},
                      WK::AbstractMatrix{T} = zeros(T, 0, 0),
                      updaterH::Function = updateH_l1_sparse,
                      updaterWt::Function = updateH_l1_sparse,
-                     objfunction::Function = L1NMF.norml1,
+                     objfunction::Function = L1NMF.lamnda_norm_l1_loss,
                      benchmark::Bool = false,
                      reinstance::Bool = true,
                      args...
@@ -60,47 +60,23 @@ function l1_sparse_nmf(X::AbstractMatrix{T},
                 W = updaterWt(X',H',W', WK, lambda; args...)'
                 W = normalize(W,r)
                 H = updaterH(X, W, H, HK, lambda; args...)
-                
-                # if reinstance
-                #     Z = copy(X) - W*H
-                #     for i in 1:r
-                #         if sum(H[i,:]) == 0
-                #             W[:,i], H[i,:] = greedy_rank_one_l1nmf(Z,HK,WK)
-                #             Z -=  W[:,i]*H[i,:]'
-                #         end
-                #     end
-                # end
             end
 
             push!(errors,objfunction(X, W, H, lambda))
             push!(times,time)
             
-            if it > 1 && errors[it]-errors[it+1] < 10^-6
+            if errors[it]-errors[it+1] < 10^-6
                 println("End at Iteration $it")
                 break
             end
-
         else
             W = updaterWt(X',H',W', WK, lambda; args...)'
             W = normalize(W,r)
             H = updaterH(X, W, H, HK, lambda; args...)
-
-            if reinstance && it < maxiter
-                Z = copy(X) - W*H
-                for i in 1:r
-                    if sum(H[i,:]) == 0
-                        W[:,i], H[i,:] = greedy_rank_one_l1nmf(Z,HK,WK)
-                        Z -=  W[:,i]*H[i,:]'
-                    end
-                end
-            end
         end
     end
 
-    if benchmark
-        return W, H, times, errors
-    end
-    return W, H
+    return benchmark ? W, H, times, errors : W, H
 end
 
 

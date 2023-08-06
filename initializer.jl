@@ -8,7 +8,7 @@ function nmf(X::AbstractMatrix{T},
              updaterW::Function = hals_updtW,
              updaterH::Function = hals_updtH,
              benchmark::Bool = false,
-             objfunction::Function = fronorm,
+             objfunction::Function = norml2,
              args...
              ) where T <: AbstractFloat
     # Constants
