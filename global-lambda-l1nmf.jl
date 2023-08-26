@@ -1,34 +1,27 @@
-export l1_sparse_nmf
+export global_lambda_sparse_l1nmf
 
-function l1_sparse_nmf(X::AbstractMatrix{T},
-                     r::Integer;
-                     lambda::Float64 = 1.0,
-                     maxiter::Integer = 20,
-                     W0::AbstractMatrix{T} = zeros(T, 0, 0),
-                     H0::AbstractMatrix{T} = zeros(T, 0, 0),
-                     initializer::Function = L1NMF.nmf,
-                     HK::AbstractMatrix{T} = zeros(T, 0, 0),
-                     WK::AbstractMatrix{T} = zeros(T, 0, 0),
-                     updaterH::Function = updateH_l1_sparse,
-                     updaterWt::Function = updateH_l1_sparse,
-                     objfunction::Function = L1NMF.lamnda_norm_l1_loss,
-                     benchmark::Bool = false,
-                     reinstance::Bool = true,
-                     args...
-                     ) where T <: AbstractFloat
+function global_lambda_sparse_l1nmf(X::AbstractMatrix{T},
+                            r::Integer;
+                            lambda::Float64 = 1.0,
+                            maxiter::Integer = 20,
+                            W0::AbstractMatrix{T} = zeros(T, 0, 0),
+                            H0::AbstractMatrix{T} = zeros(T, 0, 0),
+                            initializer::Function = L1NMF.l2nmf,
+                            HK::AbstractMatrix{T} = zeros(T, 0, 0),
+                            WK::AbstractMatrix{T} = zeros(T, 0, 0),
+                            updaterH::Function = L1NMF.updateH_l1_sparse,
+                            updaterWt::Function = L1NMF.updateH_l1_sparse,
+                            objfunction::Function = L1NMF.global_lambda_l1_norm_loss,
+                            benchmark::Bool = false,
+                            reinstance::Bool = true,
+                            args...
+                            ) where T <: AbstractFloat
 
     if benchmark
         println("Starting Initialization...")
         times = []
         errors = []
     end
-
-    if isnothing(updaterWt)
-        updaterWt = updaterH
-    end
-
-    # Constants
-    m, n = size(X)
 
     # If not provided, initiate W0 and H0
     if benchmark
@@ -52,7 +45,7 @@ function l1_sparse_nmf(X::AbstractMatrix{T},
     end
 
 
-    # Main NMF loop with error & time calc
+    # Main l1 NMF loop with error & time calc
     for it in 1:maxiter
         if benchmark
             println("Iteration $it ...")
@@ -65,6 +58,7 @@ function l1_sparse_nmf(X::AbstractMatrix{T},
             push!(errors,objfunction(X, W, H, lambda))
             push!(times,time)
             
+            # Early break if there is no progress
             if errors[it]-errors[it+1] < 10^-6
                 println("End at Iteration $it")
                 break

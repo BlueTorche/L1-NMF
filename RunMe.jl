@@ -47,7 +47,7 @@ function Accuracy(TrueClass,H)
 end
 
 # Get Data
-data  = matopen("./k1b.mat")
+data  = matopen("datasets/reviews.mat")
 classid = read(data, "classid")
 X = Matrix{Float64}(sparse(read(data,"dtm")))'
 close(data)
@@ -58,16 +58,22 @@ m, n      = size(X)
 
 benchmark = true
 
-# Classic Lambda L1NMF model
-lambda=1.0
-
-W, H, times1,errors1 = L1NMF.l1_sparse_nmf(X, r, lambda = lambda, benchmark=benchmark)
+# L2NMF model
+W, H, times1,errors1 = L1NMF.l2nmf(X, r, benchmark=benchmark, maxiter=20)
 
 Acc,_ = Accuracy(classid, H)
-print("Accuracy with global lambda : $Acc")
+println("Accuracy with l2nmf : $Acc")
+
+# Global Lambda L1NMF model
+lambda=1.0
+
+W, H, times1,errors1 = L1NMF.global_lambda_sparse_l1nmf(X, r, lambda = lambda, benchmark=benchmark)
+
+Acc,_ = Accuracy(classid, H)
+println("Accuracy with l1nmf and global lambda : $Acc")
 
 
-# Column Lambda L1NMF mdoel
+# Local Lambda L1NMF mdoel
 alpha = 0.25
 
 lambdaH = zeros(n)
@@ -77,6 +83,6 @@ for i in 1:n
     lambdaH[i] = n*length(Kj)/K*alpha
 end
 
-W, H, timesCol,errorsCol = L1NMF.l1_with_sparsity_nmf(X, r, lambdaH = lambdaH, benchmark=benchmark)
+W, H, timesCol,errorsCol = L1NMF.local_lambda_sparse_l1nmf(X, r, lambdaH = lambdaH, benchmark=benchmark)
 Acc,_ = Accuracy(classid, H)
-print("Accuracy with local lambda : $Acc")
+println("Accuracy with l1nmf and local lambda : $Acc")

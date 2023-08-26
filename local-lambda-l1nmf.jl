@@ -1,17 +1,17 @@
+export global_lambda_sparse_l1nmf
 
-function l1_with_sparsity_nmf(X::AbstractMatrix{T},
+function local_lambda_sparse_l1nmf(X::AbstractMatrix{T},
                         r::Integer;
                         lambdaH::AbstractArray{T}=zeros(T, 0, 0),
-                        lambdaW::AbstractArray{T}=zeros(T, 0, 0),
                         maxiter::Integer = 20,
                         W0::AbstractMatrix{T} = zeros(T, 0, 0),
                         H0::AbstractMatrix{T} = zeros(T, 0, 0),
-                        initializer::Function = nmf,
+                        initializer::Function = L1NMF.l2nmf,
                         HK::AbstractMatrix{T} = zeros(T, 0, 0),
                         WK::AbstractMatrix{T} = zeros(T, 0, 0),
-                        updaterH::Function = updateH_l1_sparse,
-                        updaterW::Function = updateW_l1_sparse,
-                        objfunction::Function = norml1_sparse,
+                        updaterH::Function = L1NMF.updateH_l1_sparse,
+                        updaterWt::Function = L1NMF.updateWt_l1_sparse,
+                        objfunction::Function = L1NMF.local_lambda_l1_norm_loss,
                         benchmark::Bool = false,
                         args...
                         ) where T <: AbstractFloat
@@ -20,11 +20,6 @@ function l1_with_sparsity_nmf(X::AbstractMatrix{T},
         times = []
         errors = []
     end
-
-    # Constants
-    m, n = size(X)
-
-    lambdaH =  length(lambdaH) == 0 ? ones(Float64, n) : lambdaH
 
     # If not provided, initiate W0 and H0
     if benchmark
@@ -38,6 +33,10 @@ function l1_with_sparsity_nmf(X::AbstractMatrix{T},
     end
 
     W, H = copy(W0), copy(H0)
+
+    # If not provided, initiate lambdaH by a vector of one
+    m, n = size(X)
+    lambdaH =  length(lambdaH) == 0 ? ones(Float64, n) : lambdaH
 
     # Calculate index where X isn't 0 in each columns and in each rows
     HK = length(HK) == 0 ? find_cols_null(X) : HK
@@ -53,7 +52,7 @@ function l1_with_sparsity_nmf(X::AbstractMatrix{T},
         if benchmark
             println("Iteration $it ...")
             time = @elapsed begin
-                W = updaterW(X',H',W', WK, lambdaH; args...)'
+                W = updaterWt(X',H',W', WK, lambdaH; args...)'
                 W = normalize(W')'
                 H = updaterH(X, W, H, HK, lambdaH; args...)
             end
@@ -61,12 +60,13 @@ function l1_with_sparsity_nmf(X::AbstractMatrix{T},
             push!(errors,objfunction(X, W, H, lambdaH))
             push!(times,time)
             
+            # Early breaking if there is no progress
             if it > 1 && errors[it]-errors[it+1] < 10^-6
                 println("End at Iteration $it")
                 break
             end
         else
-            W = updaterW(X',H',W', WK, lambdaH; args...)'
+            W = updaterWt(X',H',W', WK, lambdaH; args...)'
             W = normalize(W')'
             H = updaterH(X, W, H, HK, lambdaH; args...)
         end
@@ -130,7 +130,7 @@ function updateH_l1_sparse(X::AbstractMatrix{T},
     return H
 end
 
-function updateW_l1_sparse(Xt::AbstractMatrix{T},
+function updateWt_l1_sparse(Xt::AbstractMatrix{T},
         Ht::AbstractMatrix{T},
         Wt::AbstractMatrix{T},
         KH::Vector{Any},

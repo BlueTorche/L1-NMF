@@ -1,4 +1,4 @@
-function lamnda_norm_l1_loss(X, W, H, lambda)
+function global_lambda_l1_norm_loss(X, W, H, lambda)
     WH = W * H
     n, m = size(X)
     total_errors = 0.0
@@ -17,7 +17,7 @@ function lamnda_norm_l1_loss(X, W, H, lambda)
 end
 
 
-function norml1_sparse(X, W, H, lambdaH)
+function local_lambda_l1_norm_loss(X, W, H, lambdaH)
     WH = W*H
     m,n = size(X)
     errors = 0
@@ -35,7 +35,7 @@ function norml1_sparse(X, W, H, lambdaH)
 end
 
 
-function norml2(X, W, Ht)
+function l2_norm_loss(X, W, Ht)
     return sum(X.*X) - 2*sum(W.*(X*Ht)) + sum((W'*W).*(Ht'*Ht))
 end
 

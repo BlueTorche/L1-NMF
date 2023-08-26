@@ -1,6 +1,6 @@
-export nmf
+export l2nmf
 
-function nmf(X::AbstractMatrix{T},
+function l2nmf(X::AbstractMatrix{T},
              r::Integer;
              maxiter::Integer = 100,
              W0::AbstractMatrix{T} = zeros(T, 0, 0),
@@ -8,7 +8,7 @@ function nmf(X::AbstractMatrix{T},
              updaterW::Function = hals_updtW,
              updaterH::Function = hals_updtH,
              benchmark::Bool = false,
-             objfunction::Function = norml2,
+             objfunction::Function = l2_norm_loss,
              args...
              ) where T <: AbstractFloat
     # Constants
@@ -26,6 +26,7 @@ function nmf(X::AbstractMatrix{T},
     errors = zeros(Float64, maxiter)
     for it in 1:maxiter
         if benchmark
+            println("Iteration $it...")
             times[it] = @elapsed begin
                 updaterW(X, W, Ht; args...)
                 updaterH(X, W, Ht; args...)
