@@ -61,10 +61,10 @@ benchmark = true
 # Classic Lambda L1NMF model
 lambda=1.0
 
-W, H, times1,errors1 = L1NMF.l1_sparse_nmf(X,r,lambda = lambda, benchmark=benchmark)
+W, H, times1,errors1 = L1NMF.l1_sparse_nmf(X, r, lambda = lambda, benchmark=benchmark)
 
 Acc,_ = Accuracy(classid, H)
-print(Acc)
+print("Accuracy with global lambda : $Acc")
 
 
 # Column Lambda L1NMF mdoel
@@ -77,6 +77,6 @@ for i in 1:n
     lambdaH[i] = n*length(Kj)/K*alpha
 end
 
-W, H, timesCol,errorsCol = L1NMF.l1_with_sparsity_nmf(X,r,lambdaH = lambdaH, benchmark=benchmark)
+W, H, timesCol,errorsCol = L1NMF.l1_with_sparsity_nmf(X, r, lambdaH = lambdaH, benchmark=benchmark)
 Acc,_ = Accuracy(classid, H)
-print(Acc)
+print("Accuracy with local lambda : $Acc")
