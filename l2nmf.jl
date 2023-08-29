@@ -32,11 +32,17 @@ function l2nmf(X::AbstractMatrix{T},
             - args...                   : Additional arguments to be passed to the update functions.
 
         # Returns
-            - W::AbstractMatrix{T}`     : Factorized matrix W.
-            - H::AbstractMatrix{T}`     : Factorized matrix H.
+            - W::AbstractMatrix{T}      : Factorized matrix W.
+            - H::AbstractMatrix{T}      : Factorized matrix H.
         # Optional Returns
             - times::Vector{Float64}    : Array of execution times for each iteration. Returs only if benchmark == true.
             - errors::Vector{Float64}   : Array of loss function values for each iteration. Returs only if benchmark == true.
+
+        # Usage Example
+            >> X = rand(1000,500)
+            >> r = 5
+            >> W, H = L1NMF.l2nmf(X, r)
+            >> W, H, times, errors = L1NMF.l2nmf(X, r, benchmark=true, maxiter=20)
     """
 
     # Constants
